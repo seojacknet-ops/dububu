@@ -17,13 +17,12 @@ export async function GET() {
           borderRadius: '23.5%',
         }}
       >
-        🐻🐼
+        <img src="/favicon.ico" alt="DuBuBu" style={{ width: '100%', height: '100%' }} />
       </div>
     ) as React.ReactElement,
     {
       width: 32,
       height: 32,
-      emoji: 'noto',
     }
   );
 }
