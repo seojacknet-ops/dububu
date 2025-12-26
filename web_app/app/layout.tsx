@@ -38,6 +38,11 @@ export const metadata: Metadata = {
     title: "DuBuBu.com - Where Love Meets Cute",
     description: "The cutest Bubu & Dudu merchandise for couples.",
   },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
   robots: {
     index: true,
     follow: true,
