@@ -17,7 +17,7 @@ export const shippingAddressSchema = z.object({
 export const checkoutSchema = z.object({
     email: z.string().min(1, 'Email is required').email('Invalid email address'),
     shipping: shippingAddressSchema,
-    sameAsBilling: z.boolean().default(true),
+    sameAsBilling: z.boolean(),
     billing: shippingAddressSchema.optional(),
 });
 
