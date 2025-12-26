@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     description: "The cutest Bubu & Dudu merchandise for couples.",
   },
   icons: {
-    icon: "/favicon.ts",
+    icon: "/favicon.ico",
   },
   robots: {
     index: true,
