@@ -19,7 +19,7 @@ export async function GET() {
       >
         🐻🐼
       </div>
-    ),
+    ) as React.ReactElement,
     {
       width: 32,
       height: 32,
