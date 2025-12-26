@@ -1,6 +1,7 @@
-import { ProductCard } from "@/components/product/product-card";
 import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
+import { getAllProducts } from "@/features/products/queries";
+import { ProductGrid } from "@/features/products/components/product-grid";
 
 export const metadata: Metadata = {
     title: "Shop All Products",
@@ -11,59 +12,9 @@ export const metadata: Metadata = {
     },
 };
 
-// Mock products (expanded)
-const products = [
-    {
-        id: "1",
-        name: "Classic Bubu & Dudu Plush Set",
-        slug: "classic-plush-set",
-        price: 34.99,
-        image: "https://media.tenor.com/pN7xf12qQcwAAAAM/cuddle-cute.gif",
-        category: "plushies",
-    },
-    {
-        id: "2",
-        name: "Matching Couple Hoodies",
-        slug: "matching-hoodies",
-        price: 59.99,
-        image: "https://media.tenor.com/y_v4FLiKK3cAAAAM/kiss-me-through-the-phone-miss-you.gif",
-        category: "apparel",
-    },
-    {
-        id: "3",
-        name: "Love Story Mug Set",
-        slug: "love-story-mugs",
-        price: 24.99,
-        image: "https://media.tenor.com/vzkveVGDzmAAAAAm/dudu-hug-bubu-dudu-kiss.webp",
-        category: "home",
-    },
-    {
-        id: "4",
-        name: "Cute Panda Keychain",
-        slug: "panda-keychain",
-        price: 12.99,
-        image: "https://media.tenor.com/BvlQdl0TAeIAAAAm/cute.webp",
-        category: "accessories",
-    },
-    {
-        id: "5",
-        name: "Panda Pajama Set",
-        slug: "panda-pajamas",
-        price: 45.99,
-        image: "https://media.tenor.com/cI9KcgiXQUkAAAAm/sseeyall-bubu-dudu.webp",
-        category: "apparel",
-    },
-    {
-        id: "6",
-        name: "Heart Pillow",
-        slug: "heart-pillow",
-        price: 29.99,
-        image: "https://media.tenor.com/pN7xf12qQcwAAAAM/cuddle-cute.gif",
-        category: "home",
-    },
-];
+export default async function ShopPage() {
+    const products = await getAllProducts();
 
-export default function ShopPage() {
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="mb-12 text-center">
@@ -97,11 +48,7 @@ export default function ShopPage() {
 
                 {/* Product Grid */}
                 <div className="lg:col-span-3">
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
+                    <ProductGrid products={products} />
                 </div>
             </div>
         </div>

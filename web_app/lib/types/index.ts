@@ -21,7 +21,8 @@ export type ProductCategory =
     | 'apparel' 
     | 'accessories' 
     | 'home' 
-    | 'gift-sets';
+    | 'gift-sets'
+    | 'matching-sets';
 
 export interface ProductVariant {
     id: string;

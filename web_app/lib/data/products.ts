@@ -30,7 +30,7 @@ export const products: Product[] = [
             "https://media.tenor.com/y_v4FLiKK3cAAAAM/kiss-me-through-the-phone-miss-you.gif",
             "https://media.tenor.com/vzkveVGDzmAAAAAm/dudu-hug-bubu-dudu-kiss.webp"
         ],
-        category: "apparel",
+        category: "matching-sets",
         tags: ["hoodie", "couple", "matching", "sale"],
         variants: [
             { id: "v1", name: "S", type: "size", inStock: true },
@@ -168,6 +168,38 @@ export const products: Product[] = [
         category: "accessories",
         tags: ["keychain", "bear", "accessory"],
         inStock: true,
+    },
+    {
+        id: "11",
+        name: "Anniversary Gift Box",
+        slug: "anniversary-gift-box",
+        price: 74.99,
+        description: "A curated gift box with plushies, matching keychains, and a handwritten note to celebrate your special day.",
+        image: "https://media.tenor.com/HOLG_hTN8WsAAAAm/bubu-jumping-on-dudu-happy.webp",
+        images: [
+            "https://media.tenor.com/HOLG_hTN8WsAAAAm/bubu-jumping-on-dudu-happy.webp",
+            "https://media.tenor.com/pN7xf12qQcwAAAAM/cuddle-cute.gif"
+        ],
+        category: "gift-sets",
+        tags: ["gift", "anniversary", "bundle"],
+        inStock: true,
+    },
+    {
+        id: "12",
+        name: "Matching Date Night Bundle",
+        slug: "matching-date-night-bundle",
+        price: 89.99,
+        compareAtPrice: 109.99,
+        description: "Matching hoodie + blanket combo for cozy date nights. Includes an exclusive love note from Bubu & Dudu.",
+        image: "https://media.tenor.com/eEf0j_M3z9wAAAAm/bubu-dudu-sseeyall.webp",
+        images: [
+            "https://media.tenor.com/eEf0j_M3z9wAAAAm/bubu-dudu-sseeyall.webp",
+            "https://media.tenor.com/qQNt-BqDtE8AAAAm/bubu-fun-sleep-bubu-dudu-love.webp"
+        ],
+        category: "matching-sets",
+        tags: ["matching", "bundle", "couple"],
+        inStock: true,
+        featured: true,
     },
 ];
 

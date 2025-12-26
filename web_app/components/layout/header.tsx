@@ -11,9 +11,11 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const navigation = [
     { name: "Shop All", href: "/shop" },
-    { name: "Plushies", href: "/shop/plushies" },
-    { name: "Apparel", href: "/shop/apparel" },
-    { name: "Accessories", href: "/shop/accessories" },
+    { name: "Plushies", href: "/collections/plushies" },
+    { name: "Apparel", href: "/collections/apparel" },
+    { name: "Accessories", href: "/collections/accessories" },
+    { name: "Gift Sets", href: "/collections/gift-sets" },
+    { name: "Matching", href: "/collections/matching-sets" },
     { name: "Gift Guide", href: "/gift-guide" },
 ];
 

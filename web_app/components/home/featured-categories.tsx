@@ -4,27 +4,33 @@ import Image from 'next/image';
 const categories = [
     {
         name: 'Plushies',
-        href: '/shop/plushies',
+        href: '/collections/plushies',
         image: 'https://media.tenor.com/pN7xf12qQcwAAAAM/cuddle-cute.gif',
         color: 'bg-brand-soft-pink'
     },
     {
         name: 'Apparel',
-        href: '/shop/apparel',
+        href: '/collections/apparel',
         image: 'https://media.tenor.com/HOLG_hTN8WsAAAAm/bubu-jumping-on-dudu-happy.webp',
         color: 'bg-brand-cream'
     },
     {
         name: 'Accessories',
-        href: '/shop/accessories',
+        href: '/collections/accessories',
         image: 'https://media.tenor.com/vzkveVGDzmAAAAAm/dudu-hug-bubu-dudu-kiss.webp',
         color: 'bg-brand-mint/20'
     },
     {
-        name: 'Matching Sets',
-        href: '/shop/matching-sets',
-        image: 'https://media.tenor.com/y_v4FLiKK3cAAAAM/kiss-me-through-the-phone-miss-you.gif',
+        name: 'Gift Sets',
+        href: '/collections/gift-sets',
+        image: 'https://media.tenor.com/HOLG_hTN8WsAAAAm/bubu-jumping-on-dudu-happy.webp',
         color: 'bg-brand-yellow/20'
+    },
+    {
+        name: 'Matching Sets',
+        href: '/collections/matching-sets',
+        image: 'https://media.tenor.com/y_v4FLiKK3cAAAAM/kiss-me-through-the-phone-miss-you.gif',
+        color: 'bg-brand-soft-pink/50'
     }
 ];
 

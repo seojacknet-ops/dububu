@@ -36,10 +36,11 @@ export function Footer() {
                     <div>
                         <h3 className="mb-4 font-bold text-brand-brown">Shop</h3>
                         <ul className="space-y-3 text-sm text-gray-600">
-                            <li><Link href="/shop/plushies" className="hover:text-brand-pink">Plushies</Link></li>
-                            <li><Link href="/shop/apparel" className="hover:text-brand-pink">Apparel</Link></li>
-                            <li><Link href="/shop/accessories" className="hover:text-brand-pink">Accessories</Link></li>
-                            <li><Link href="/shop/gift-sets" className="hover:text-brand-pink">Gift Sets</Link></li>
+                            <li><Link href="/collections/plushies" className="hover:text-brand-pink">Plushies</Link></li>
+                            <li><Link href="/collections/apparel" className="hover:text-brand-pink">Apparel</Link></li>
+                            <li><Link href="/collections/accessories" className="hover:text-brand-pink">Accessories</Link></li>
+                            <li><Link href="/collections/gift-sets" className="hover:text-brand-pink">Gift Sets</Link></li>
+                            <li><Link href="/collections/matching-sets" className="hover:text-brand-pink">Matching Sets</Link></li>
                             <li><Link href="/shop" className="hover:text-brand-pink">View All</Link></li>
                         </ul>
                     </div>
