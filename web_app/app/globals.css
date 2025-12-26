@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand Colors */
+  --color-bubu-brown: #8B6F47;
+  --color-bubu-cream: #F5E6D3;
+  --color-panda-white: #FFFFFF;
+  --color-panda-black: #2C2C2C;
+  --color-love-pink: #FFB6C1;
+  --color-soft-pink: #FFF0F5;
+  --color-blush: #FF69B4;
+  --color-mint-accent: #98D8C8;
+  --color-warm-yellow: #FFE4B5;
+
+  /* Theme mappings */
+  --background: var(--color-bubu-cream);
+  --foreground: var(--color-panda-black);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Brand Colors Exposed to Tailwind */
+  --color-brand-brown: var(--color-bubu-brown);
+  --color-brand-cream: var(--color-bubu-cream);
+  --color-brand-white: var(--color-panda-white);
+  --color-brand-black: var(--color-panda-black);
+  --color-brand-pink: var(--color-love-pink);
+  --color-brand-soft-pink: var(--color-soft-pink);
+  --color-brand-blush: var(--color-blush);
+  --color-brand-mint: var(--color-mint-accent);
+  --color-brand-yellow: var(--color-warm-yellow);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
