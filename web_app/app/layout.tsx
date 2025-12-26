@@ -25,11 +25,6 @@ export const metadata: Metadata = {
   description: "Discover the cutest Bubu & Dudu merchandise for couples. Plushies, apparel, accessories, and matching sets. Free shipping on orders over $50!",
   keywords: ["bubu dudu", "couple gifts", "matching couples", "kawaii", "plushies", "cute merchandise"],
   authors: [{ name: "DuBuBu" }],
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
   openGraph: {
     type: "website",
     locale: "en_US",
