@@ -2,6 +2,7 @@ import { HeroSection } from "@/components/home/hero-section";
 import { FeaturedCategories } from "@/components/home/featured-categories";
 import { BestSellers } from "@/components/home/best-sellers";
 import { TrustBadges } from "@/components/home/trust-badges";
+import { InstagramFeed } from "@/components/home/instagram-feed";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <HeroSection />
       <FeaturedCategories />
       <BestSellers />
+      <InstagramFeed />
       <TrustBadges />
     </>
   );
