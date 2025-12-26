@@ -7,9 +7,8 @@ import { useEffect, useState } from 'react';
 
 const INSTAGRAM_URL = 'https://instagram.com/dububu.co';
 
-// Get your free Elfsight widget ID from https://elfsight.com/instagram-feed-widget/
-// Then add NEXT_PUBLIC_ELFSIGHT_WIDGET_ID to your environment variables
-const ELFSIGHT_WIDGET_ID = process.env.NEXT_PUBLIC_ELFSIGHT_WIDGET_ID;
+// Elfsight Instagram Feed Widget ID
+const ELFSIGHT_WIDGET_ID = '4889bcf2-3f89-4a1c-b9fa-4f51332d6dba';
 
 // Fallback images when Elfsight widget is not configured
 const fallbackPosts = [
@@ -116,9 +115,8 @@ export function InstagramFeed() {
                             strategy="lazyOnload"
                         />
                         <div 
-                            className="elfsight-app-lazy" 
-                            data-elfsight-app-lazy 
-                            data-elfsight-app-widget-id={ELFSIGHT_WIDGET_ID}
+                            className={`elfsight-app-${ELFSIGHT_WIDGET_ID}`}
+                            data-elfsight-app-lazy
                         />
                     </>
                 ) : (
