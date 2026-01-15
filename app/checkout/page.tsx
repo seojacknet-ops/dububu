@@ -4,26 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, Lock, CreditCard, ShieldCheck } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { useCartStore } from "@/stores/cart-store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
+import { createCheckoutSession } from "@/features/checkout/actions/create-checkout-session";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function CheckoutPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const items = useCartStore((state) => state.items);
     const subtotal = useCartStore((state) => state.subtotal);
-    const clearCart = useCartStore((state) => state.clearCart);
     const [mounted, setMounted] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
     const {
         register,
         handleSubmit,
         formState: { errors },
+        watch,
     } = useForm<CheckoutInput>({
         resolver: zodResolver(checkoutSchema),
         defaultValues: {
@@ -48,24 +52,39 @@ export default function CheckoutPage() {
         setMounted(true);
     }, []);
 
+    useEffect(() => {
+        // Show canceled message
+        if (searchParams.get('canceled') === 'true') {
+            toast.error('Checkout was canceled. Your cart is still saved.');
+        }
+    }, [searchParams]);
+
     const onSubmit = async (data: CheckoutInput) => {
         if (items.length === 0) {
             toast.error('Your cart is empty!');
             return;
         }
 
-        setIsSubmitting(true);
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('Checkout data:', data);
-        toast.success('Order placed successfully! 🐻🐼', {
-            description: 'You will receive a confirmation email shortly.',
+        startTransition(async () => {
+            const result = await createCheckoutSession({
+                items: items.map(item => ({
+                    productId: item.productId,
+                    variantId: item.variantId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image,
+                })),
+                email: data.email,
+            });
+
+            if (result.success && result.url) {
+                // Redirect to Stripe checkout
+                window.location.href = result.url;
+            } else {
+                toast.error(result.error || 'Failed to create checkout session');
+            }
         });
-        
-        clearCart();
-        setIsSubmitting(false);
     };
 
     const cartSubtotal = mounted ? subtotal() : 0;
@@ -96,8 +115,6 @@ export default function CheckoutPage() {
                             <ChevronRight className="h-3 w-3" />
                             <span className="font-medium text-gray-900">Information</span>
                             <ChevronRight className="h-3 w-3" />
-                            <span>Shipping</span>
-                            <ChevronRight className="h-3 w-3" />
                             <span>Payment</span>
                         </nav>
                     </div>
@@ -115,99 +132,49 @@ export default function CheckoutPage() {
                             <section>
                                 <h2 className="mb-4 text-lg font-medium text-gray-900">Contact</h2>
                                 <div>
-                                    <Input 
-                                        type="email" 
-                                        placeholder="Email" 
+                                    <Input
+                                        type="email"
+                                        placeholder="Email for order updates"
                                         {...register('email')}
                                         className={errors.email ? 'border-red-500' : ''}
                                     />
                                     {errors.email && (
                                         <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
                                     )}
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        You&apos;ll enter your shipping address on the next page (Stripe checkout)
+                                    </p>
                                 </div>
                             </section>
 
-                            {/* Shipping Section */}
-                            <section>
-                                <h2 className="mb-4 text-lg font-medium text-gray-900">Shipping Address</h2>
-                                <div className="grid gap-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Input 
-                                                placeholder="First name" 
-                                                {...register('shipping.firstName')}
-                                                className={errors.shipping?.firstName ? 'border-red-500' : ''}
-                                            />
-                                            {errors.shipping?.firstName && (
-                                                <p className="mt-1 text-sm text-red-500">{errors.shipping.firstName.message}</p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <Input 
-                                                placeholder="Last name" 
-                                                {...register('shipping.lastName')}
-                                                className={errors.shipping?.lastName ? 'border-red-500' : ''}
-                                            />
-                                            {errors.shipping?.lastName && (
-                                                <p className="mt-1 text-sm text-red-500">{errors.shipping.lastName.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    
+                            {/* Stripe Checkout Info */}
+                            <section className="bg-brand-soft-pink rounded-lg p-4">
+                                <div className="flex items-start gap-3">
+                                    <ShieldCheck className="w-5 h-5 text-brand-pink mt-0.5" />
                                     <div>
-                                        <Input 
-                                            placeholder="Address" 
-                                            {...register('shipping.address1')}
-                                            className={errors.shipping?.address1 ? 'border-red-500' : ''}
-                                        />
-                                        {errors.shipping?.address1 && (
-                                            <p className="mt-1 text-sm text-red-500">{errors.shipping.address1.message}</p>
-                                        )}
+                                        <h3 className="font-medium text-brand-brown">Secure Checkout</h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            You&apos;ll be redirected to Stripe&apos;s secure checkout page to complete your payment.
+                                            Your payment information is never stored on our servers.
+                                        </p>
                                     </div>
-                                    
-                                    <Input 
-                                        placeholder="Apartment, suite, etc. (optional)" 
-                                        {...register('shipping.address2')}
-                                    />
-                                    
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <Input 
-                                                placeholder="City" 
-                                                {...register('shipping.city')}
-                                                className={errors.shipping?.city ? 'border-red-500' : ''}
-                                            />
-                                            {errors.shipping?.city && (
-                                                <p className="mt-1 text-sm text-red-500">{errors.shipping.city.message}</p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <Input 
-                                                placeholder="State" 
-                                                {...register('shipping.state')}
-                                                className={errors.shipping?.state ? 'border-red-500' : ''}
-                                            />
-                                            {errors.shipping?.state && (
-                                                <p className="mt-1 text-sm text-red-500">{errors.shipping.state.message}</p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <Input 
-                                                placeholder="ZIP code" 
-                                                {...register('shipping.zipCode')}
-                                                className={errors.shipping?.zipCode ? 'border-red-500' : ''}
-                                            />
-                                            {errors.shipping?.zipCode && (
-                                                <p className="mt-1 text-sm text-red-500">{errors.shipping.zipCode.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
+                                </div>
+                            </section>
 
-                                    <Input 
-                                        placeholder="Phone (optional)" 
-                                        type="tel"
-                                        {...register('shipping.phone')}
-                                    />
+                            {/* Payment Methods Info */}
+                            <section>
+                                <h2 className="mb-4 text-lg font-medium text-gray-900">Accepted Payment Methods</h2>
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded">
+                                        <CreditCard className="w-5 h-5 text-gray-600" />
+                                        <span className="text-sm">Credit/Debit Cards</span>
+                                    </div>
+                                    <div className="bg-gray-50 px-3 py-2 rounded">
+                                        <span className="text-sm font-medium">Apple Pay</span>
+                                    </div>
+                                    <div className="bg-gray-50 px-3 py-2 rounded">
+                                        <span className="text-sm font-medium">Google Pay</span>
+                                    </div>
                                 </div>
                             </section>
 
@@ -216,19 +183,22 @@ export default function CheckoutPage() {
                                 <Link href="/shop" className="text-sm text-brand-brown hover:underline order-2 sm:order-1">
                                     ← Return to shop
                                 </Link>
-                                <Button 
-                                    type="submit" 
-                                    size="lg" 
+                                <Button
+                                    type="submit"
+                                    size="lg"
                                     className="w-full sm:w-auto px-8 order-1 sm:order-2"
-                                    disabled={isSubmitting}
+                                    disabled={isPending}
                                 >
-                                    {isSubmitting ? (
+                                    {isPending ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Processing...
+                                            Redirecting to payment...
                                         </>
                                     ) : (
-                                        'Continue to Shipping'
+                                        <>
+                                            <Lock className="mr-2 h-4 w-4" />
+                                            Proceed to Payment
+                                        </>
                                     )}
                                 </Button>
                             </div>
@@ -239,8 +209,8 @@ export default function CheckoutPage() {
                 {/* Right Column: Order Summary */}
                 <div className="bg-gray-50 px-4 py-8 lg:py-12 lg:pl-12 border-t lg:border-t-0 lg:border-l border-gray-200">
                     <div className="sticky top-24 space-y-6">
-                        <h2 className="text-lg font-medium text-gray-900 lg:hidden">Order Summary</h2>
-                        
+                        <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
+
                         {/* Cart Items */}
                         <div className="space-y-4">
                             {items.map((item) => (
@@ -299,9 +269,16 @@ export default function CheckoutPage() {
                         </div>
 
                         {/* Trust badges */}
-                        <div className="pt-4 text-center text-xs text-gray-500">
-                            <p>🔒 Secure checkout powered by Stripe</p>
-                            <p className="mt-1">🚚 Free shipping on orders over $50</p>
+                        <div className="pt-4 space-y-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2">
+                                <Lock className="w-4 h-4" />
+                                <span>Secure checkout powered by Stripe</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4" />
+                                <span>Your payment info is never stored</span>
+                            </div>
+                            <p className="mt-2">🚚 Free shipping on orders over $50</p>
                         </div>
                     </div>
                 </div>
