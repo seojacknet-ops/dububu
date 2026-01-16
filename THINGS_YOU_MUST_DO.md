@@ -141,6 +141,7 @@ NEXTAUTH_SECRET="your-generated-secret"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
+//////I AM UP TO THIS PART//// JACK!!!
 #### Google OAuth (Optional)
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create new project or select existing

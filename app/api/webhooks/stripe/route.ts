@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe, formatAmountFromStripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
+import { sendOrderConfirmationEmail } from '@/lib/email/templates';
 import type Stripe from 'stripe';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -101,7 +102,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         firstName: '',
         lastName: '',
         address1: '',
+        address2: '',
         city: '',
+        state: '',
         zipCode: '',
         country: '',
       };
@@ -176,7 +179,37 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   console.log('[STRIPE_WEBHOOK] Order created:', order.orderNumber);
 
-  // TODO: Send order confirmation email
+  // Send order confirmation email
+  try {
+    const emailResult = await sendOrderConfirmationEmail({
+      orderNumber: order.orderNumber,
+      email: order.email,
+      customerName: shippingAddress.firstName || undefined,
+      items: orderItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        sku: item.sku,
+        variantId: item.variantId,
+      })),
+      subtotal,
+      shippingCost: shippingCost > 0 ? shippingCost : 0,
+      tax: 0,
+      discount: 0,
+      total,
+      shippingAddress,
+    });
+
+    if (emailResult.success) {
+      console.log('[STRIPE_WEBHOOK] Order confirmation email sent:', emailResult.messageId);
+    } else {
+      console.error('[STRIPE_WEBHOOK] Failed to send order confirmation email:', emailResult.error);
+    }
+  } catch (emailError) {
+    // Log but don't fail the webhook - order was created successfully
+    console.error('[STRIPE_WEBHOOK] Error sending order confirmation email:', emailError);
+  }
+
   // TODO: Trigger fulfillment automation (Printful/CJDropshipping)
 }
 

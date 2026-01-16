@@ -1,7 +1,8 @@
 'use server'
 
 import { z } from 'zod';
-import { resend } from '@/lib/email/resend';
+import { isEmailConfigured } from '@/lib/email/smtp';
+import { sendContactFormEmails } from '@/lib/email/templates';
 
 const schema = z.object({
   name: z.string().min(1),
@@ -22,26 +23,24 @@ export async function submitContactForm(formData: FormData) {
     return { success: false as const, error: 'Please complete all required fields.' };
   }
 
-  if (!resend) {
+  if (!isEmailConfigured()) {
     return { success: false as const, error: 'Email service is not configured. Please try again later.' };
   }
 
   const data = parsed.data;
 
   try {
-    await resend.emails.send({
-      from: 'DuBuBu Contact <noreply@dububu.com>',
-      to: 'hello@dububu.com',
-      subject: `[Contact Form] ${data.subject} - ${data.name}`,
-      text: `From: ${data.name} (${data.email})\n\n${data.message}`,
-    });
+    const { adminEmail, autoReply } = await sendContactFormEmails(data);
 
-    await resend.emails.send({
-      from: 'DuBuBu <hello@dububu.com>',
-      to: data.email,
-      subject: 'We received your message! 💕',
-      text: `Hi ${data.name},\n\nThank you for reaching out! We've received your message and will respond within 24-48 hours.\n\nLove,\nBubu & Dudu 🐻🐼`,
-    });
+    if (!adminEmail.success) {
+      console.error('[CONTACT_FORM] Failed to send admin notification:', adminEmail.error);
+      return { success: false as const, error: 'Failed to send message. Please try again.' };
+    }
+
+    if (!autoReply.success) {
+      // Log but don't fail - the main email was sent
+      console.error('[CONTACT_FORM] Failed to send auto-reply:', autoReply.error);
+    }
 
     return { success: true as const };
   } catch (error) {
