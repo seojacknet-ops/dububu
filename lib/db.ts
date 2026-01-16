@@ -458,7 +458,7 @@ export const db = {
     },
 
     async create(args: {
-      data: Omit<Order, 'id' | 'createdAt' | 'updatedAt'> & {
+      data: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'items'> & {
         items?: { create: Omit<OrderItem, 'id'>[] };
       };
       include?: { items?: boolean };

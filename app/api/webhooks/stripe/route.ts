@@ -150,7 +150,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         postal_code: session.customer_details.address.postal_code || undefined,
         country: session.customer_details.address.country || undefined,
       } : undefined,
-      items: orderItems,
+      items: {
+        create: orderItems.map(item => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          name: item.name,
+          sku: item.sku,
+          price: item.price,
+          quantity: item.quantity,
+        }))
+      },
       subtotal,
       shippingCost: shippingCost > 0 ? shippingCost : 0,
       tax: 0,

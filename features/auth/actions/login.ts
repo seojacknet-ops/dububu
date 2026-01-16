@@ -26,7 +26,8 @@ export async function login(input: LoginInput, redirectTo?: string) {
     console.error('[LOGIN_ERROR]', error);
 
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      const message = error.issues?.[0]?.message || 'Invalid input';
+      return { success: false, error: message };
     }
 
     if (error instanceof AuthError) {

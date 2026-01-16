@@ -82,7 +82,7 @@ interface CJShippingMethod {
 
 export class CJDropshippingClient {
   private apiKey: string;
-  private accessToken: string | null = null;
+  private accessToken: string = '';
 
   constructor(config?: CJConfig) {
     this.apiKey = config?.apiKey || process.env.CJDROPSHIPPING_API_KEY || '';

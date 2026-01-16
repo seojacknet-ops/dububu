@@ -4,7 +4,8 @@
  */
 
 import { db } from '@/lib/db';
-import { VendorType } from '@prisma/client';
+import { VendorType } from '@/lib/firebase/types';
+import { FieldValue } from 'firebase-admin/firestore';
 import { createPrintfulOrderFromOrder, printful } from './printful';
 import { createCJOrderFromOrder, cjDropshipping } from './cjdropshipping';
 
@@ -22,17 +23,9 @@ interface FulfillmentResult {
  */
 export async function fulfillOrder(orderId: string): Promise<FulfillmentResult> {
   try {
-    // Get order with items and product vendor info
+    // Get order with items - items are embedded in Firestore
     const order = await db.order.findUnique({
       where: { id: orderId },
-      include: {
-        items: {
-          include: {
-            product: true,
-            variant: true,
-          },
-        },
-      },
     });
 
     if (!order) {
@@ -43,8 +36,16 @@ export async function fulfillOrder(orderId: string): Promise<FulfillmentResult> 
       return { success: false, error: 'Order already fulfilled or in progress' };
     }
 
+    // Get product details for items
+    const itemsWithProducts = await Promise.all(
+      (order.items || []).map(async (item) => {
+        const product = await db.product.findUnique({ where: { id: item.productId } });
+        return { ...item, product };
+      })
+    );
+
     // Group items by vendor type
-    const itemsByVendor = groupItemsByVendor(order.items);
+    const itemsByVendor = groupItemsByVendor(itemsWithProducts);
 
     const results: FulfillmentResult[] = [];
 
@@ -99,8 +100,8 @@ export async function fulfillOrder(orderId: string): Promise<FulfillmentResult> 
   }
 }
 
-function groupItemsByVendor(items: Array<{ product: { vendorType: VendorType | null } | null }>) {
-  const groups: Record<string, typeof items> = {
+function groupItemsByVendor<T extends { product: { vendorType?: VendorType } | null }>(items: T[]) {
+  const groups: Record<string, T[]> = {
     PRINTFUL: [],
     CJDROPSHIPPING: [],
     ALIEXPRESS: [],
@@ -127,10 +128,11 @@ async function processPrintfulOrder(
     shippingAddress: unknown;
   },
   items: Array<{
-    product: { name: string } | null;
-    variant: { vendorVariantId: string | null } | null;
+    name: string;
     quantity: number;
-    price: unknown;
+    price: number;
+    vendorItemId?: string;
+    product: unknown;
   }>
 ): Promise<FulfillmentResult> {
   try {
@@ -153,9 +155,9 @@ async function processPrintfulOrder(
       items: items.map((item) => ({
         productId: '',
         quantity: item.quantity,
-        name: item.product?.name || 'Product',
-        price: Number(item.price),
-        vendorVariantId: item.variant?.vendorVariantId || undefined,
+        name: item.name,
+        price: item.price,
+        vendorVariantId: item.vendorItemId || undefined,
       })),
     });
 
@@ -163,7 +165,7 @@ async function processPrintfulOrder(
       return {
         success: true,
         vendorOrderId: String(result.orderId),
-        vendorType: VendorType.PRINTFUL,
+        vendorType: 'PRINTFUL',
       };
     }
 
@@ -184,10 +186,11 @@ async function processCJOrder(
     shippingAddress: unknown;
   },
   items: Array<{
-    product: { name: string } | null;
-    variant: { vendorVariantId: string | null } | null;
+    name: string;
     quantity: number;
-    price: unknown;
+    price: number;
+    vendorItemId?: string;
+    product: unknown;
   }>
 ): Promise<FulfillmentResult> {
   try {
@@ -210,9 +213,9 @@ async function processCJOrder(
       items: items.map((item) => ({
         productId: '',
         quantity: item.quantity,
-        name: item.product?.name || 'Product',
-        price: Number(item.price),
-        vendorVariantId: item.variant?.vendorVariantId || undefined,
+        name: item.name,
+        price: item.price,
+        vendorVariantId: item.vendorItemId || undefined,
       })),
     });
 
@@ -220,7 +223,7 @@ async function processCJOrder(
       return {
         success: true,
         vendorOrderId: result.orderId,
-        vendorType: VendorType.CJDROPSHIPPING,
+        vendorType: 'CJDROPSHIPPING',
       };
     }
 
@@ -255,14 +258,14 @@ export async function syncOrderTracking(orderId: string): Promise<{
     let trackingNumber: string | undefined;
     let trackingUrl: string | undefined;
 
-    if (order.vendorType === VendorType.PRINTFUL) {
+    if (order.vendorType === 'PRINTFUL') {
       const printfulOrder = await printful.getOrder(order.vendorOrderId);
       const shipment = printfulOrder.result.shipments?.[0];
       if (shipment) {
         trackingNumber = shipment.tracking_number;
         trackingUrl = shipment.tracking_url;
       }
-    } else if (order.vendorType === VendorType.CJDROPSHIPPING) {
+    } else if (order.vendorType === 'CJDROPSHIPPING') {
       const tracking = await cjDropshipping.getTracking(order.vendorOrderId);
       if (tracking.data) {
         trackingNumber = tracking.data.trackNumber;
@@ -278,7 +281,7 @@ export async function syncOrderTracking(orderId: string): Promise<{
           trackingNumber,
           trackingUrl,
           status: 'SHIPPED',
-          shippedAt: new Date(),
+          shippedAt: FieldValue.serverTimestamp(),
         },
       });
 

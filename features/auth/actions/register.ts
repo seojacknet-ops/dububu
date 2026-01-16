@@ -43,7 +43,8 @@ export async function register(input: RegisterInput) {
     console.error('[REGISTER_ERROR]', error);
 
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      const message = error.issues?.[0]?.message || 'Invalid input';
+      return { success: false, error: message };
     }
 
     return { success: false, error: 'Something went wrong. Please try again.' };

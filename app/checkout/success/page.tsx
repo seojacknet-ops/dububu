@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Package, ArrowRight, Loader2 } from 'lucide-react';
 import { useCartStore } from '@/stores/cart-store';
-import { GIFS } from '@/lib/constants/gifs';
+import { GIFS, getRandomGif } from '@/lib/constants/gifs';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const clearCart = useCartStore((state) => state.clearCart);
@@ -40,7 +40,7 @@ export default function CheckoutSuccessPage() {
           <div className="mb-8">
             <div className="relative w-48 h-48 mx-auto mb-6">
               <Image
-                src={GIFS.celebrate}
+                src={getRandomGif('celebration')}
                 alt="Bubu and Dudu celebrating"
                 fill
                 className="object-contain"
@@ -152,5 +152,17 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-brand-soft-pink flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-pink" />
+      </div>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

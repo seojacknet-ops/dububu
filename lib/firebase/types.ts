@@ -177,8 +177,8 @@ export interface Order {
   vendorType?: VendorType;
   trackingNumber?: string;
   trackingUrl?: string;
-  shippedAt?: Timestamp;
-  deliveredAt?: Timestamp;
+  shippedAt?: Timestamp | FieldValue;
+  deliveredAt?: Timestamp | FieldValue;
   discountCode?: string;
   notes?: string;
   customerNotes?: string;

@@ -9,13 +9,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 import { useCartStore } from "@/stores/cart-store";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, Suspense } from "react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
 import { createCheckoutSession } from "@/features/checkout/actions/create-checkout-session";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const items = useCartStore((state) => state.items);
@@ -284,5 +284,17 @@ export default function CheckoutPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-brand-pink" />
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     );
 }
