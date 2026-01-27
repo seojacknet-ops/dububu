@@ -1,11 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConvexClient } from "@/lib/convex-client";
 import { api } from "@/convex/_generated/api";
+import { printful } from "@/lib/vendors/printful";
 
 export async function POST(req: NextRequest) {
   try {
+    // Verify webhook signature for security
+    const signature = req.headers.get("x-pf-signature");
+    if (!signature) {
+      console.error("[PRINTFUL_WEBHOOK] Missing signature header");
+      return NextResponse.json(
+        { error: "Missing webhook signature" },
+        { status: 401 }
+      );
+    }
+
+    // Get raw body for signature verification
+    const body = await req.text();
+    if (!printful.verifyWebhookSignature(body, signature)) {
+      console.error("[PRINTFUL_WEBHOOK] Invalid webhook signature");
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 }
+      );
+    }
+
+    const event = JSON.parse(body);
     const convex = getConvexClient();
-    const event = await req.json();
     const { type, data } = event;
 
     console.log(`[PRINTFUL_WEBHOOK] Received event: ${type}`);

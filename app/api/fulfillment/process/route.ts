@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
       try {
         // Send admin notification email
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.dububu.com";
-        await fetch(`${baseUrl}/api/email/admin-notification`, {
+        const emailResponse = await fetch(`${baseUrl}/api/email/admin-notification`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -147,6 +147,12 @@ export async function POST(req: NextRequest) {
             email: order.email,
           }),
         });
+
+        if (!emailResponse.ok) {
+          throw new Error(
+            `Failed to send admin notification: ${emailResponse.status} ${emailResponse.statusText}`
+          );
+        }
 
         results.aliexpress.success = true;
         results.aliexpress.notified = true;

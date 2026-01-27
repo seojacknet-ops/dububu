@@ -50,11 +50,21 @@ export async function POST(req: NextRequest) {
 
           // Trigger fulfillment
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.dububu.com";
-          await fetch(`${baseUrl}/api/fulfillment/process`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ orderId }),
-          });
+          try {
+            const fulfillmentResponse = await fetch(`${baseUrl}/api/fulfillment/process`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId }),
+            });
+
+            if (!fulfillmentResponse.ok) {
+              console.error(
+                `[STRIPE_WEBHOOK] Fulfillment process failed: ${fulfillmentResponse.status} ${fulfillmentResponse.statusText}`
+              );
+            }
+          } catch (fulfillmentError) {
+            console.error("[STRIPE_WEBHOOK] Fulfillment process error:", fulfillmentError);
+          }
 
           console.log(`[STRIPE_WEBHOOK] Payment succeeded for order ${orderId}`);
         }

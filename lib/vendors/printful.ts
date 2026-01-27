@@ -3,6 +3,8 @@
  * Documentation: https://developers.printful.com/docs/
  */
 
+import crypto from 'crypto';
+
 const PRINTFUL_API_URL = 'https://api.printful.com';
 
 interface PrintfulConfig {
@@ -279,6 +281,28 @@ export class PrintfulClient {
         states: Array<{ code: string; name: string }> | null;
       }>;
     }>('/countries');
+  }
+
+  /**
+   * Verify webhook signature from Printful
+   * Printful signs webhooks using HMAC-SHA256 with the API key
+   * @param body Raw request body (must be string/buffer, not parsed JSON)
+   * @param signature The signature from X-PF-Signature header
+   * @returns true if signature is valid, false otherwise
+   */
+  verifyWebhookSignature(body: string | Buffer, signature: string): boolean {
+    if (!this.apiKey) {
+      console.warn('[PRINTFUL] Cannot verify webhook signature: API key not configured');
+      return false;
+    }
+
+    const bodyString = typeof body === 'string' ? body : body.toString('utf-8');
+    const expectedSignature = crypto
+      .createHmac('sha256', this.apiKey)
+      .update(bodyString)
+      .digest('hex');
+
+    return signature === expectedSignature;
   }
 }
 
