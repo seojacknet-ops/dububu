@@ -1,4 +1,7 @@
-import { db } from '@/lib/db';
+"use client";
+
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   ShoppingCart,
   DollarSign,
@@ -7,75 +10,61 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
+import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 
-// Get dashboard stats from Firestore
-async function getDashboardStats() {
-  try {
-    const [orderCount, productCount] = await Promise.all([
-      db.order.count().catch(() => 0),
-      db.product.count().catch(() => 12), // Default to seed data count
-    ]);
-
-    return {
-      totalRevenue: 2450.00,
-      totalOrders: orderCount || 15,
-      totalProducts: productCount,
-      totalCustomers: 8,
-      recentOrders: [],
-      revenueGrowth: 12.5,
-      ordersGrowth: 8.3,
-    };
-  } catch {
-    // Return demo data if Firestore isn't connected
-    return {
-      totalRevenue: 2450.00,
-      totalOrders: 15,
-      totalProducts: 12,
-      totalCustomers: 8,
-      recentOrders: [],
-      revenueGrowth: 12.5,
-      ordersGrowth: 8.3,
-    };
-  }
+interface Order {
+  _id: string;
+  orderNumber: string;
+  email: string;
+  status: string;
+  total: number;
 }
 
-export default async function AdminDashboard() {
-  const stats = await getDashboardStats();
+export default function AdminDashboard() {
+  const orderStats = useQuery(api.orders.getOrderStats);
+  const recentOrders = useQuery(api.orders.getRecentOrders, { limit: 5 });
+  const products = useQuery(api.products.getAll, { limit: 100 });
+
+  // Calculate stats
+  const totalRevenue = orderStats?.totalRevenue ?? 0;
+  const totalOrders = orderStats?.totalOrders ?? 0;
+  const totalProducts = products?.length ?? 0;
+  const totalCustomers = 0; // TODO: Add customers count
 
   const statCards = [
     {
-      name: 'Total Revenue',
-      value: `$${stats.totalRevenue.toLocaleString()}`,
+      name: "Total Revenue",
+      value: formatPrice(totalRevenue),
       icon: DollarSign,
-      change: stats.revenueGrowth,
-      changeType: 'increase' as const,
-      href: '/admin/analytics',
+      change: 12.5,
+      changeType: "increase" as const,
+      href: "/admin/analytics",
     },
     {
-      name: 'Orders',
-      value: stats.totalOrders.toString(),
+      name: "Orders",
+      value: totalOrders.toString(),
       icon: ShoppingCart,
-      change: stats.ordersGrowth,
-      changeType: 'increase' as const,
-      href: '/admin/orders',
+      change: 8.3,
+      changeType: "increase" as const,
+      href: "/admin/orders",
     },
     {
-      name: 'Products',
-      value: stats.totalProducts.toString(),
+      name: "Products",
+      value: totalProducts.toString(),
       icon: Package,
       change: null,
-      changeType: 'neutral' as const,
-      href: '/admin/products',
+      changeType: "neutral" as const,
+      href: "/admin/products",
     },
     {
-      name: 'Customers',
-      value: stats.totalCustomers.toString(),
+      name: "Customers",
+      value: totalCustomers.toString(),
       icon: Users,
       change: 5.2,
-      changeType: 'increase' as const,
-      href: '/admin/customers',
+      changeType: "increase" as const,
+      href: "/admin/customers",
     },
   ];
 
@@ -83,7 +72,9 @@ export default async function AdminDashboard() {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your store.</p>
+        <p className="text-gray-600">
+          Welcome back! Here&apos;s what&apos;s happening with your store.
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -101,10 +92,12 @@ export default async function AdminDashboard() {
               {stat.change !== null && (
                 <div
                   className={`flex items-center text-sm font-medium ${
-                    stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+                    stat.changeType === "increase"
+                      ? "text-green-600"
+                      : "text-red-600"
                   }`}
                 >
-                  {stat.changeType === 'increase' ? (
+                  {stat.changeType === "increase" ? (
                     <TrendingUp className="mr-1 h-4 w-4" />
                   ) : (
                     <TrendingDown className="mr-1 h-4 w-4" />
@@ -126,7 +119,9 @@ export default async function AdminDashboard() {
         {/* Recent Orders */}
         <div className="rounded-xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Recent Orders
+            </h2>
             <Link
               href="/admin/orders"
               className="text-sm text-brand-pink hover:underline flex items-center"
@@ -134,16 +129,51 @@ export default async function AdminDashboard() {
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </div>
-          <div className="text-center py-8 text-gray-500">
-            <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 mb-2" />
-            <p>No recent orders yet.</p>
-            <p className="text-sm">Orders will appear here once customers start buying.</p>
-          </div>
+          {recentOrders === undefined ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-pink"></div>
+            </div>
+          ) : recentOrders.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 mb-2" />
+              <p>No recent orders yet.</p>
+              <p className="text-sm">
+                Orders will appear here once customers start buying.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentOrders.map((order: Order) => (
+                <Link
+                  key={order._id}
+                  href={`/admin/orders/${order._id}`}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {order.orderNumber}
+                    </p>
+                    <p className="text-sm text-gray-500">{order.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">
+                      {formatPrice(order.total)}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {order.status}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick Links */}
         <div className="rounded-xl bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/admin/products/new"

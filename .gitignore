@@ -2,3 +2,5 @@
 .env
 .vercel
 *.exe
+# Local settings
+.claude/settings.local.json

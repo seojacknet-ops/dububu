@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { Toaster } from "@/components/ui/toaster";
+import { Providers } from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -62,14 +63,16 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${nunito.variable} antialiased`}
       >
-        <AnnouncementBar />
-        <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
-        <CartDrawer />
-        <Toaster />
+        <Providers>
+          <AnnouncementBar />
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <CartDrawer />
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

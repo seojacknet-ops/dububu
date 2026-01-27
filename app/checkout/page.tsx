@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to avoid build-time auth issues
+export const dynamic = 'force-dynamic';
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -12,14 +15,13 @@ import { useCartStore } from "@/stores/cart-store";
 import { useEffect, useState, useTransition, Suspense } from "react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/utils";
-import { createCheckoutSession } from "@/features/checkout/actions/create-checkout-session";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function CheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const items = useCartStore((state) => state.items);
-    const subtotal = useCartStore((state) => state.subtotal);
+    const getSubtotal = useCartStore((state) => state.getSubtotal);
     const [mounted, setMounted] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -66,28 +68,39 @@ function CheckoutContent() {
         }
 
         startTransition(async () => {
-            const result = await createCheckoutSession({
-                items: items.map(item => ({
-                    productId: item.productId,
-                    variantId: item.variantId,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image,
-                })),
-                email: data.email,
-            });
+            try {
+                // Create payment intent via our API
+                const response = await fetch('/api/stripe/create-payment-intent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: getSubtotal() + (getSubtotal() >= 50 ? 0 : 5.99),
+                        metadata: {
+                            email: data.email,
+                            items: JSON.stringify(items.map(item => ({
+                                productId: item.productId,
+                                name: item.name,
+                                quantity: item.quantity,
+                            }))),
+                        },
+                    }),
+                });
 
-            if (result.success && result.url) {
-                // Redirect to Stripe checkout
-                window.location.href = result.url;
-            } else {
-                toast.error(result.error || 'Failed to create checkout session');
+                const result = await response.json();
+
+                if (result.clientSecret) {
+                    // Redirect to our payment page with the client secret
+                    router.push(`/checkout/payment?secret=${result.clientSecret}&email=${encodeURIComponent(data.email)}`);
+                } else {
+                    toast.error(result.error || 'Failed to create payment session');
+                }
+            } catch {
+                toast.error('Failed to create checkout session');
             }
         });
     };
 
-    const cartSubtotal = mounted ? subtotal() : 0;
+    const cartSubtotal = mounted ? getSubtotal() : 0;
     const shipping = cartSubtotal >= 50 ? 0 : 5.99;
     const total = cartSubtotal + shipping;
 

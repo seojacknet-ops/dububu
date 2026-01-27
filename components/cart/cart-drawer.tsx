@@ -12,7 +12,7 @@ export function CartDrawer() {
     const isOpen = useCartStore((state) => state.isOpen);
     const closeCart = useCartStore((state) => state.closeCart);
     const items = useCartStore((state) => state.items);
-    const subtotal = useCartStore((state) => state.subtotal);
+    const getSubtotal = useCartStore((state) => state.getSubtotal);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -80,7 +80,7 @@ export function CartDrawer() {
                             <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                                 <div className="flex justify-between text-base font-medium text-gray-900">
                                     <p>Subtotal</p>
-                                    <p>${subtotal().toFixed(2)}</p>
+                                    <p>${getSubtotal().toFixed(2)}</p>
                                 </div>
                                 <p className="mt-0.5 text-sm text-gray-500">
                                     Shipping and taxes calculated at checkout.
